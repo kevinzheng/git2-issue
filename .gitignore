@@ -1,0 +1,12 @@
+/target
+
+.history/
+
+.idea/
+
+storage/
+/config.yml
+.env
+.env.repositories
+/docker/dev/git-service
+/docker/linux/git-service
