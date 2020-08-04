@@ -64,7 +64,7 @@ mod tests {
 
         let repo = utils::repo_create(&repo_id).unwrap();
 
-        let signature = Signature::now("Zhang", "zhang@gmail.com").unwrap();
+        let signature = Signature::now("Someone", "someone@gmail.com").unwrap();
 
         // List branches through HTTP request
         let mut app =

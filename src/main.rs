@@ -30,7 +30,6 @@ use listenfd::ListenFd;
 mod errors;
 pub mod file;
 mod utils;
-mod validators;
 
 #[actix_rt::main]
 async fn main() -> std::io::Result<()> {

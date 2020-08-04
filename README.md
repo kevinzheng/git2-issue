@@ -3,7 +3,7 @@
 I'm seeking for help for that issue with $100 offer, not very much, but hope anyone could help! Pls send me message if you can help, I will pay for that. Very appreciate it!
 
 ## Issue: 
-> using `git2-rs` in `async` handler of `actix_web` causes old files in git repository deleted, the reason might be that `libgit2` doesn't work well in multiple thread environment. But even the files creating are not happened at the same time, it always make the old files deleted, then only one file left at the end.
+> using `git2-rs` in `async` handler of `actix_web` causes old files in git repository deleted, the reason might be that `libgit2` doesn't work well in multiple thread environment. But even the files creating do not happen at the same time, it always make the old files deleted, then only one file left at the end.
 
 ## Target:
 > It creates files through `actix_web` correctly, no old files deleting.
