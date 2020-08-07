@@ -18,7 +18,7 @@ extern crate uuid;
 use dotenv::dotenv;
 use env_logger::Env;
 
-use std::fs::File;
+use std::fs::{File, OpenOptions};
 use std::ops::Add;
 use std::path::{Path, PathBuf};
 use std::process::Command;
@@ -229,22 +229,19 @@ pub fn create_file_then_commit_then_push(
 
     // Wait if the repo is locked
     let mut i: usize = 0;
-    while is_repo_locked(&repo_path) {
+    while !lock_repo(&repo_path).unwrap() {
         if i >= 20000 {
             return Err(AppError::InternalServerError(format!(
                 "Repository({}) is locked!",
                 &repo_path
             )));
         }
-        println!(">>>>>>>>>>>>>> waiting repo {}", &repo_path);
-        thread::sleep(time::Duration::from_millis(1000));
+        // println!(">>>>>>>>>>>>>> waiting repo {}", &repo_path);
+        thread::sleep(time::Duration::from_millis(1));
         i = i + 1;
     }
 
-    thread::sleep(time::Duration::from_millis(1000));
-
-    // lock the repo by a creating a specified file
-    lock_repo(&repo_path);
+    println!("locked");
 
     let mut index = repo.index()?;
 
@@ -252,6 +249,8 @@ pub fn create_file_then_commit_then_push(
     index_entry.path = file_path.as_bytes().to_vec();
     let content = file_content.as_bytes();
     index.add_frombuffer(&index_entry, content)?;
+    index.write()?;
+
     let index_tree_id = index.write_tree()?;
     let commit_id = commit(
         &repo,
@@ -262,7 +261,8 @@ pub fn create_file_then_commit_then_push(
         &commit_message,
     )?;
 
-    unlock_repo(&repo_path);
+    println!("unlocking");
+    unlock_repo(&repo_path).unwrap();
 
     return Ok(commit_id);
 }
@@ -326,10 +326,17 @@ fn is_repo_locked(repo_path: &str) -> bool {
     repo_lock_file_path(&repo_path).exists()
 }
 
-fn lock_repo(repo_path: &str) -> Result<(), AppError> {
+fn lock_repo(repo_path: &str) -> Result<bool, AppError> {
     let lock_file_path = repo_lock_file_path(&repo_path);
-    File::create(&lock_file_path)?;
-    Ok(())
+    match OpenOptions::new()
+        .write(true)
+        .create_new(true)
+        .open(&lock_file_path)
+    {
+        Ok(_) => Ok(true),
+        Err(e) if matches!(e.kind(), std::io::ErrorKind::AlreadyExists) => Ok(false),
+        Err(e) => Err(e.into()),
+    }
 }
 
 fn unlock_repo(repo_path: &str) -> Result<(), AppError> {
